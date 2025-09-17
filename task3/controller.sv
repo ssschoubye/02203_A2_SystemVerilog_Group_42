@@ -1,3 +1,15 @@
+// -----------------------------------------------------------------------------
+//
+//  Title      :  Controller to manange the picture transfer to and from the PC.
+//             :
+//  Developers :  Otto Westy Rasmussen - s203838@dtu.dk
+//             :
+//  Purpose    :  Controller to manage the picture transfer to and from the PC.
+//             :
+//  Revision   :  02203 fall 2025 v.1.0
+//
+// -----------------------------------------------------------------------------
+
 module controller #(
     parameter MEMORY_ADDR_SIZE = 16
 ) (

@@ -23,7 +23,6 @@ module top (
 
     // Internal signals
     logic clk;
-    logic rst_s;
     logic [15:0] addr;
     logic [31:0] dataR, dataW;
     logic en, we, finish, start_db;

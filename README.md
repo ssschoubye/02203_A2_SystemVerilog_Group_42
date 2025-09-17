@@ -29,6 +29,8 @@ Otto Westy Rasmussen, S203838, S203838@dtu.dk
 │   ├── pic1.pgm
 │   ├── test2.sv
 ├── task3/                    # Extended system and UART
+    └── clock_divider.sv
+    └── debouncer.sv
     ├── Nexys4DDR_edge.xdc
     └── uart.vhd
 ```

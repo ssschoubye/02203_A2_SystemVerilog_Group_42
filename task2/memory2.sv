@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 //
-//  Title      :  System Verilog FSMD implementation template for GCD
+//  Title      :  Single port non-synthesizable ram
 //             :
 //  Developers :  Otto Westy Rasmussen <s203838@dtu.dk>
 //             :

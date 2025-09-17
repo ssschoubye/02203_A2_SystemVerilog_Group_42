@@ -50,14 +50,13 @@ module top (
         .reset(rst),
         .sw(start),
         .db_level(start_db),
-        .db_tick(),
-        .reset_sync(rst_s)
+        .db_tick()
     );
 
     // Accelerator instance
     acc accelerator_inst_0 (
         .clk(clk),
-        .reset(rst_s),
+        .reset(rst),
         .addr(addr),
         .dataR(dataR),
         .dataW(dataW),
@@ -70,7 +69,7 @@ module top (
     // Controller instance
     controller controller_inst_0 (
         .clk(clk),
-        .reset(rst_s),
+        .reset(rst),
         .data_stream_tx(data_stream_in),
         .data_stream_tx_stb(data_stream_in_stb),
         .data_stream_tx_ack(data_stream_in_ack),
@@ -88,7 +87,7 @@ module top (
         .baud(115200),
         .clock_frequency(100_000_000 / CLK_DIVISION_FACTOR),
         .clock(clk),
-        .reset(rst_s),
+        .reset(rst),
         .data_stream_in(data_stream_in),
         .data_stream_in_stb(data_stream_in_stb),
         .data_stream_in_ack(data_stream_in_ack),

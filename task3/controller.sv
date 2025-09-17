@@ -58,7 +58,7 @@ module controller #(
   state_type state, state_next;
 
   logic [31:0] data_buffer, data_buffer_next;
-  logic [ADDR_COUNT_SIZE-1:0] addr_count, addr_count_next;
+  logic [MEMORY_ADDR_SIZE-1:0] addr_count, addr_count_next;
 
   assign mem_addr = addr_count;
   assign mem_dw   = data_buffer;

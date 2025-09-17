@@ -23,7 +23,6 @@ module top (
 
     // Internal signals
     logic clk;
-    logic rst_s;
     logic [15:0] addr;
     logic [31:0] dataR, dataW;
     logic en, we, finish, start_db;
@@ -83,9 +82,10 @@ module top (
     );
 
     // UART instance
-    uart uart_inst_0 (
-        .baud(115200),
-        .clock_frequency(100_000_000 / CLK_DIVISION_FACTOR),
+    uart # (
+        .baud(115200), .
+        clock_frequency(100_000_000 / CLK_DIVISION_FACTOR)) 
+    uart_inst_0 (
         .clock(clk),
         .reset(rst),
         .data_stream_in(data_stream_in),

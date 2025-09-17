@@ -33,6 +33,7 @@ Otto Westy Rasmussen, S203838, S203838@dtu.dk
     ├── debouncer.sv
     ├── memory3.sv
     ├── Nexys4DDR_edge.xdc
+    ├── top.sv
     └── uart.vhd
 ```
 

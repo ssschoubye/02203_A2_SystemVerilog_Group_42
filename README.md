@@ -11,25 +11,30 @@ Otto Westy Rasmussen, S203838, S203838@dtu.dk
 ## Repository Structure
 
 ```bash
-├── README.md                 # This file
-├── other_images/             # Example PGM images for testing
+├── other_images
 │   ├── cross.pgm
 │   ├── illusion.pgm
 │   ├── kaleidoscope.pgm
-│   └── pattern.pgm
-├── serial_interface/         # Serial interface utility
-│   ├── serial_interface.py
-│   └── Serial interface.exe
-├── task2/                    # Accelerator, memory, and testbench
+│   ├── pattern.pgm
+│   └── systemverilog.pgm
+├── README.md
+├── serial_interface
+│   ├── HELP.txt
+│   ├── LICENSE.txt
+│   ├── README.md
+│   ├── requirements.txt
+│   ├── Serial interface.exe
+│   └── serial_interface.py
+├── task2
 │   ├── acc2.sv
 │   ├── clock.sv
 │   ├── memory2.sv
 │   ├── pic1.pgm
-│   ├── test2.sv
-└── task3/                    # Extended system and UART
+│   └── test2.sv
+└── task3
     ├── clock_divider.sv
     ├── controller.sv
-    ├── debouncer.sv
+    ├── debounce.sv
     ├── memory3.sv
     ├── Nexys4DDR_edge.xdc
     ├── top.sv
@@ -42,10 +47,6 @@ Otto Westy Rasmussen, S203838, S203838@dtu.dk
   - Tool: [Xilinx Vivado](https://www.xilinx.com/products/design-tools/vivado.html)  
   - Target board: Nexys 4 DDR or Nexys A7  
   - Use `Nexys4DDR_edge.xdc` for FPGA pin constraints   
-
-## TODO
-- [x] Task 3
-- [ ] Update serial interface
 
 ## Notes
 - This repo provides a **SystemVerilog** version of the assignment (original was in VHDL).  

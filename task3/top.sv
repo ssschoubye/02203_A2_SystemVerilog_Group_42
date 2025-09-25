@@ -83,9 +83,9 @@ module top (
 
     // UART instance
     uart # (
-        .baud(115200), .
-        clock_frequency(100_000_000 / CLK_DIVISION_FACTOR)) 
-    uart_inst_0 (
+        .baud(115200),
+        .clock_frequency(100_000_000 / CLK_DIVISION_FACTOR)
+    ) uart_inst_0 (
         .clock(clk),
         .reset(rst),
         .data_stream_in(data_stream_in),

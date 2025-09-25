@@ -15,12 +15,12 @@ module clock_divider #(
 
   logic clk_fb;
 
-
 // PLLE2_BASE: Base Phase Locked Loop (PLL)
 
 PLLE2_BASE #(
-   .CLKFBOUT_MULT(5),        // Multiply value for all CLKOUT, (2-64)
-   .CLKOUT0_DIVIDE(DIVIDE)
+   .CLKFBOUT_MULT(8),        // Multiply value for all CLKOUT, (2-64)
+   .CLKOUT0_DIVIDE(DIVIDE*8),
+   .CLKIN1_PERIOD(10.0)
 )
 PLLE2_BASE_inst (
    .CLKOUT0(clk_out),   // 1-bit output: CLKOUT0

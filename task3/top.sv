@@ -87,11 +87,19 @@ module top (
 
     // UART instance
     uart # (
+<<<<<<< HEAD
         .P_BAUD_RATE(115200),
         .P_CLOCK_FREQUENCY(100_000_000 / CLK_DIVISION_FACTOR)
     ) uart_inst_0 (
         .clk(clk),
         .rst(rst),
+=======
+        .baud(115200),
+        .clock_frequency(100_000_000 / CLK_DIVISION_FACTOR)
+    ) uart_inst_0 (
+        .clock(clk),
+        .reset(rst),
+>>>>>>> 8e8447d ((RTL): Small cleanup)
         .data_stream_in(data_stream_in),
         .data_stream_in_stb(data_stream_in_stb),
         .data_stream_in_ack(data_stream_in_ack),

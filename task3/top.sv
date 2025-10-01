@@ -34,7 +34,7 @@ module top (
     logic [7:0] data_stream_in, data_stream_out;
     logic data_stream_in_stb, data_stream_in_ack, data_stream_out_stb;
 
-    (* MARK_DEBUG = "TRUE" *) logic tx, rx;
+    logic tx, rx;
 
     assign tx = serial_tx;
     assign serial_rx = rx;

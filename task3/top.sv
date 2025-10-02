@@ -34,6 +34,10 @@ module top (
     logic [7:0] data_stream_in, data_stream_out;
     logic data_stream_in_stb, data_stream_in_ack, data_stream_out_stb;
 
+    logic tx, rx;
+
+    assign tx = serial_tx;
+    assign serial_rx = rx;
     // LED output
     assign led = finish;
 
@@ -83,18 +87,18 @@ module top (
 
     // UART instance
     uart # (
-        .baud(115200),
-        .clock_frequency(100_000_000 / CLK_DIVISION_FACTOR)
+        .P_BAUD_RATE(115200),
+        .P_CLOCK_FREQUENCY(100_000_000 / CLK_DIVISION_FACTOR)
     ) uart_inst_0 (
-        .clock(clk),
-        .reset(rst),
+        .clk(clk),
+        .rst(rst),
         .data_stream_in(data_stream_in),
         .data_stream_in_stb(data_stream_in_stb),
         .data_stream_in_ack(data_stream_in_ack),
         .data_stream_out(data_stream_out),
         .data_stream_out_stb(data_stream_out_stb),
-        .tx(serial_rx),
-        .rx(serial_tx)
+        .tx(rx),
+        .rx(tx)
     );
 
     // Memory3 instance

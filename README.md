@@ -38,8 +38,7 @@ Otto Westy Rasmussen, S203838, S203838@dtu.dk
     ├── memory3.sv
     ├── Nexys4DDR_edge.xdc
     ├── top.sv
-    ├── UART_LICENSE.txt
-    └── uart.vhd
+    └── uart.sv
 ```
 
 ## Simulation and Tools

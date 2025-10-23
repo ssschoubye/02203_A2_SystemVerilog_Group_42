@@ -19,7 +19,7 @@
 // reset is active high.
 //------------------------------------------------------------------------------
 
-module acc (
+module acc2 (
     input  logic        clk,        // The clock.
     input  logic        reset,      // The reset signal. Active high.
     output logic [15:0] addr,       // Address bus for data (halfword_t).

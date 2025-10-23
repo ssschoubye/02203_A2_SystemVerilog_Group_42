@@ -9,7 +9,7 @@ module testbench;
     logic clk;
     logic reset;
     logic StopSimulation = 0;
-    localparam string load_file_name = "/home/ottow/Documents/02203_A2_code/task2/pic1.pgm"; // Path to the input PGM file
+    localparam string load_file_name = "C:/Users/emmel/Vivado_projects/02203_A2_SystemVerilog_Group_42/task2/pic1.pgm"; // Path to the input PGM file
 
     // Accelerator and memory signals
     logic [15:0] addr;

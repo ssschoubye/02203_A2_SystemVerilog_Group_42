@@ -1,3 +1,10 @@
 *.log
 *.pb
 *venv
+*.xpr
+*.wpc
+*.wdf
+README.txt
+*.lpr
+xsim
+sim

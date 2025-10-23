@@ -27,7 +27,7 @@ module testbench;
     );
 
     // Instantiate accelerator
-    acc Accelerator (
+    acc0 Accelerator (
         .clk(clk),
         .reset(reset),
         .addr(addr),

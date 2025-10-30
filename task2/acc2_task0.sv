@@ -77,10 +77,11 @@ module acc0 (
             end
             
             read: begin
-                next_reg_a = dataR[7:0];
-                next_reg_b = dataR[15:8];
-                next_reg_c = dataR[23:16];
-                next_reg_d = dataR[31:24];
+                //next_reg_a = dataR[7:0];
+                //next_reg_b = dataR[15:8];
+                //next_reg_c = dataR[23:16];
+                //next_reg_d = dataR[31:24];
+                {next_reg_d, next_reg_c, next_reg_b, next_reg_a} = dataR;
                 
                 en = 0;
                 next_state = compute;

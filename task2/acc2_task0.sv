@@ -54,7 +54,7 @@ module acc0 (
         next_reg_c = reg_c;
         next_reg_d = reg_d;
         addr = address;
-        
+
         case(state)
             idle: begin
                 finish = 0;
@@ -63,19 +63,17 @@ module acc0 (
                 next_reg_c = 0;
                 next_reg_d = 0;
                 address = 0;
-                
+
                 if(start) next_state = req_data;
             end
-            
+
             req_data: begin
                 en = 1;
                 we = 0;
-                // addr = 0; // FIXME:
-                // addr = addrR;
-                
-                next_state = read;            
+
+                next_state = read;
             end
-            
+
             read: begin
                 //next_reg_a = dataR[7:0];
                 //next_reg_b = dataR[15:8];
@@ -86,13 +84,13 @@ module acc0 (
                 en = 0;
                 next_state = compute;
             end
-            
+
             compute: begin
                 next_reg_a = 255 - reg_a;
                 next_reg_b = 255 - reg_b;
                 next_reg_c = 255 - reg_c;
                 next_reg_d = 255 - reg_d;
-            
+
                 address = address + 25344;
                 next_state = write;
             end
@@ -103,20 +101,20 @@ module acc0 (
 
                 dataW = {reg_d, reg_c, reg_b, reg_a};
                 next_state = done;
-                
+
             end
             done: begin
                     en = 0;
-                    we = 0; 
+                    we = 0;
                 if(address >= 50687) begin
                     finish = 1;
                 end else begin
                     // addr - 25344 + 1 (jump back to the source image, but on next memory line)
-                    address = address - 25343; 
+                    address = address - 25343;
 
                     next_state = req_data;
                 end
-            end  
+            end
         endcase
     end
 

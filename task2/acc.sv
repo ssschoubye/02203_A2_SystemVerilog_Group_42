@@ -32,6 +32,20 @@ module acc (
     output logic        finish
 );
 
+
+    sob sobel (
+        .s11(dataR[7:0]),
+        .s21(dataR[7:0]),
+        .s31(dataR[7:0]),
+        .s12(dataR[7:0]),
+        .s22(dataR[7:0]),
+        .s32(dataR[7:0]),
+        .s13(dataR[7:0]),
+        .s23(dataR[7:0]),
+        .s33(dataR[7:0])
+
+    );
+
   // ---------------------------------------------------
   // Insert your design here
   // ---------------------------------------------------

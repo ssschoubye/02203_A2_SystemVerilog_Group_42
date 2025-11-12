@@ -21,45 +21,34 @@
 
 
 module sobel(
-    input  logic        s11,
-    input  logic        s21,
-    input  logic        s31,
-    input  logic        s12,
-    input  logic        s22,
-    input  logic        s32,
-    input  logic        s13,
-    input  logic        s23,
-    input  logic        s33,
-    output logic        out
+    input  logic[8:0]        s11,
+    input  logic[8:0]        s21,
+    input  logic[8:0]        s31,
+    input  logic[8:0]        s12,
+    input  logic[8:0]        s22,
+    input  logic[8:0]        s32,
+    input  logic[8:0]        s13,
+    input  logic[8:0]        s23,
+    input  logic[8:0]        s33,
+    output logic[12:0]        out
 
     
 );
-    int v1, v2, v3, v4, v5, v6;
+    logic signed [10:0] v1, v2, v3, v4, v5, v6;
+    logic signed [11:0] gx_s, gy_s;
+    logic signed [11:0] gx_abs, gy_abs;
   // ---------------------------------------------------
   // Insert your design here
   // ---------------------------------------------------
     always_comb begin
-    
-        v1 = s13 - s11;
-        v2 = s23 - s21;
-        v3 = s33 - s31;
-        v4 = s11 - s31;
-        v5 = s12 - s32;
-        v6 = s13 - s33;
         
+        gx_s = s13 - s11 + ((s23 - s21) << 1) + s33 - s31;
+        gy_s = s11 - s31 + ((s12 - s32) << 1) + s13 - s33;
         
-        v2 = v2 << 1;
-        v5 = v5 << 1;
+        gx_abs = gx_s[11] ? (~gx_s + 12'b1) : gx_s;
+        gy_abs = gy_s[11] ? (~gy_s + 12'b1) : gx_s;
         
-        v1 = v1 + v2 + v3;
-        v4 = v4 + v5 + v6;
-        
-        v1 = (v1 < 0) ? -v1 : v1;
-        v2 = (v2 < 0) ? -v2 : v2;
-        
-        v1 = v1 + v2;
-        
-        out = v1;
+        out = gx_abs + gy_abs;
     
     end 
 endmodule

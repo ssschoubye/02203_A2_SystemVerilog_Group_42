@@ -67,7 +67,7 @@ module acc (
         addr = address;
 
         case(state)
-            idle:
+            idle: begin
                 if (start) begin
                     en = 1;
                     we = 0;
@@ -76,6 +76,7 @@ module acc (
 
                     next_state = read_no_comp;
                 end
+            end
 
             read_no_comp: begin
                 // Read something

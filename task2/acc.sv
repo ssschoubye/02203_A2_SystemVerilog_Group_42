@@ -32,7 +32,6 @@ module acc (
     output logic        finish
 );
 
-
     sob sobel (
         .s11(dataR[7:0]),
         .s21(dataR[7:0]),
@@ -43,7 +42,6 @@ module acc (
         .s13(dataR[7:0]),
         .s23(dataR[7:0]),
         .s33(dataR[7:0])
-
     );
 
   // ---------------------------------------------------
@@ -66,7 +64,7 @@ module acc (
         addr = address;
 
         case(state)
-            idle:
+            idle: begin
                 if (start) begin
                     en = 1;
                     we = 0;
@@ -75,6 +73,7 @@ module acc (
 
                     next_state = read_no_comp;
                 end
+            end
 
             read_no_comp: begin
                 // Read something
@@ -96,7 +95,6 @@ module acc (
                         pixel_counter = 0;
                         address = address - 175; // 88 * 2 + 1
 
-                        
                         next_state = read_comp;
                     end
                     default: // For now should not happen
@@ -110,18 +108,14 @@ module acc (
                         {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
                         // if edge do nothing
                         write_reg[0] = 255; // FIXME dummy value
-                        
 
                         address = address + 88; // Have the next adress ready for next read
-
-
 
                     end
 
                     1: begin
                         {next_read_reg[19], next_read_reg[18], next_read_reg[17], next_read_reg[16]} = dataR;
                         write_reg[1] = 255; // FIXME dummy value
-                        
 
                         address = address + 88; // Have the next adress ready for next read
 
@@ -130,8 +124,6 @@ module acc (
                     2: begin
                         {next_read_reg[23], next_read_reg[22], next_read_reg[21], next_read_reg[20]} = dataR;
                         write_reg[2] = 255; // FIXME dummy value
-                        
-
 
                         address = address + 25344; // Have the next adress ready for next write
 
@@ -144,16 +136,15 @@ module acc (
             write_comp: begin
                 // comp and then write
                 logic [7:0] result = 255; // FIXME dummy value
-                
 
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
                 we = 1; // Set write-enable to 1 for a write transaction
-                
+
                 if(address >= 50687) begin
                     next_state = read_comp;
                 end else begin
                     next_state = done;
-                
+                end
 
             end
 

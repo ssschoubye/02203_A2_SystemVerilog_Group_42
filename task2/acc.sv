@@ -65,7 +65,7 @@ module acc (
     always_comb begin
         next_state = state;
         next_read_reg = read_reg;
-        addr = address;
+        //addr = address;
 
         case(state)
             idle: begin
@@ -73,6 +73,7 @@ module acc (
                     finish = 0;
                     en = 1;
                     we = 0;
+                    addr = 0;
                     address = 0;
                     pixel_counter = 0;
                     result = 0;
@@ -113,7 +114,7 @@ module acc (
                     0: begin
                         {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
                         // if edge do nothing
-                        if(address % 88 == 0) begin
+                        if((address-1) % 88 == 0) begin
                             write_reg[0] = 'x; // FIXME
                         end else begin
                             s11 = read_reg[15];
@@ -166,7 +167,6 @@ module acc (
                         address = address + 25344; // Have the next adress ready for next write
                         pixel_counter = 0;
                         next_state = write_comp1;
-
                     end
                     //default: // For now should not happen
                         //assert(0);
@@ -300,6 +300,7 @@ module acc (
         else begin
             state <= next_state;
             read_reg <= next_read_reg;
+            addr <= address;
         end
     end;
 

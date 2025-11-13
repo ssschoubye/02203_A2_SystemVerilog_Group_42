@@ -29,11 +29,12 @@ module sobel(
     input  logic[7:0]        s13,
     input  logic[7:0]        s23,
     input  logic[7:0]        s33,
-    output logic[12:0]        out
+    output logic[7:0]        out
 
 );
     logic signed [11:0] gx_s, gy_s;
     logic signed [11:0] gx_abs, gy_abs;
+    logic [11:0] mag; 
   // ---------------------------------------------------
   // Insert your design here
   // ---------------------------------------------------
@@ -45,7 +46,9 @@ module sobel(
         gx_abs = gx_s[11] ? (~gx_s + 12'b1) : gx_s;
         gy_abs = gy_s[11] ? (~gy_s + 12'b1) : gx_s;
 
-        out = gx_abs + gy_abs;
+        mag = gx_abs + gy_abs;
+
+        out = mag > 255 ? 8'd255 : mag[7:0];
 
     end
 endmodule

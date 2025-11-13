@@ -32,17 +32,18 @@ module acc (
     output logic        finish
 );
 
-
-    sob sobel (
-        .s11(dataR[7:0]),
-        .s21(dataR[7:0]),
-        .s31(dataR[7:0]),
-        .s12(dataR[7:0]),
-        .s22(dataR[7:0]),
-        .s32(dataR[7:0]),
-        .s13(dataR[7:0]),
-        .s23(dataR[7:0]),
-        .s33(dataR[7:0])
+    logic[7:0] s11, s12, s13, s21, s23, s31, s32, s33, out;
+    sobel u_sob(
+        .s11(s11),
+        .s21(s21),
+        .s31(s31),
+        .s12(s12),
+        .s22(0),
+        .s32(s32),
+        .s13(s13),
+        .s23(s23),
+        .s33(s33),
+        .out(out)
 
     );
 
@@ -51,7 +52,7 @@ module acc (
   // ---------------------------------------------------
 
     typedef enum logic[3:0]{
-        idle, read_no_comp, read_comp, write_comp, done
+        idle, read_no_comp, read_comp1, read_comp2, write_comp1, write_comp2, done
     } state_t;
 
   reg [23:0][7:0] read_reg, next_read_reg;
@@ -96,44 +97,71 @@ module acc (
                         pixel_counter = 0;
                         address = address - 175; // 88 * 2 + 1
 
-                        
-                        next_state = read_comp;
+                        next_state = read_comp1;
                     end
                     default: // For now should not happen
                         assert(0);
                 endcase
             end
-            read_comp: begin
-                // do something for first three pixels
+            read_comp1: begin
+                we = 0;
                 case(pixel_counter)
                     0: begin
                         {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
                         // if edge do nothing
-                        write_reg[0] = 255; // FIXME dummy value
-                        
+                        if(address % 88 == 0) begin
+                            write_reg[0] = 'x; // FIXME
+                        end else begin
+                            s11 = read_reg[15];
+                            s12 = read_reg[0];
+                            s13 = read_reg[1];
+                            s21 = read_reg[19];
+                            s23 = read_reg[5];
+                            s31 = read_reg[23];
+                            s32 = read_reg[8];
+                            s33 = read_reg[9];
+                            write_reg[0] = out; 
+                        end
 
                         address = address + 88; // Have the next adress ready for next read
-
-
+                        pixel_counter = pixel_counter + 1;
+                        next_state = read_comp1;
 
                     end
 
                     1: begin
                         {next_read_reg[19], next_read_reg[18], next_read_reg[17], next_read_reg[16]} = dataR;
-                        write_reg[1] = 255; // FIXME dummy value
+                        s11 = read_reg[0];
+                        s12 = read_reg[1];
+                        s13 = read_reg[2];
+                        s21 = read_reg[4];
+                        s23 = read_reg[6];
+                        s31 = read_reg[8];
+                        s32 = read_reg[9];
+                        s33 = read_reg[10];
+                        write_reg[1] = out; 
                         
-
                         address = address + 88; // Have the next adress ready for next read
+                        pixel_counter = pixel_counter + 1;
+                        next_state = read_comp1;
 
                     end
 
                     2: begin
                         {next_read_reg[23], next_read_reg[22], next_read_reg[21], next_read_reg[20]} = dataR;
-                        write_reg[2] = 255; // FIXME dummy value
+                        s11 = read_reg[1];
+                        s12 = read_reg[2];
+                        s13 = read_reg[3];
+                        s21 = read_reg[5];
+                        s23 = read_reg[7];
+                        s31 = read_reg[9];
+                        s32 = read_reg[10];
+                        s33 = read_reg[11];
+                        write_reg[2] = out; 
                         
-
-
                         address = address + 25344; // Have the next adress ready for next write
+                        pixel_counter = 0;
+                        next_state = write_comp1;
 
                     end
                     default: // For now should not happen
@@ -141,19 +169,115 @@ module acc (
                 endcase
             end
 
-            write_comp: begin
-                // comp and then write
-                logic [7:0] result = 255; // FIXME dummy value
-                
+            read_comp2: begin
+                we = 0;
+                case(pixel_counter)
+                    0: begin
+                        {next_read_reg[3], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
+                        s11 = read_reg[3];
+                        s12 = read_reg[12];
+                        s13 = read_reg[13];
+                        s21 = read_reg[7];
+                        s23 = read_reg[17];
+                        s31 = read_reg[11];
+                        s32 = read_reg[20];
+                        s33 = read_reg[21];
+                        write_reg[0] = out; 
+                        
 
-                dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
+                        address = address + 88; // Have the next adress ready for next read
+                        pixel_counter = pixel_counter + 1;
+                        next_state = read_comp1;
+
+                    end
+
+                    1: begin
+                        {next_read_reg[7], next_read_reg[6], next_read_reg[5], next_read_reg[4]} = dataR;
+                        s11 = read_reg[12];
+                        s12 = read_reg[13];
+                        s13 = read_reg[14];
+                        s21 = read_reg[16];
+                        s23 = read_reg[18];
+                        s31 = read_reg[20];
+                        s32 = read_reg[21];
+                        s33 = read_reg[22];
+                        write_reg[1] = out; 
+
+                        address = address + 88; // Have the next adress ready for next read
+                        pixel_counter = pixel_counter + 1;
+                        next_state = read_comp1;
+
+                    end
+
+                    2: begin
+                        {next_read_reg[11], next_read_reg[10], next_read_reg[9], next_read_reg[8]} = dataR;
+                        s11 = read_reg[13];
+                        s12 = read_reg[14];
+                        s13 = read_reg[15];
+                        s21 = read_reg[17];
+                        s23 = read_reg[19];
+                        s31 = read_reg[21];
+                        s32 = read_reg[22];
+                        s33 = read_reg[23];
+                        write_reg[2] = out; 
+
+                        address = address + 25344; // Have the next adress ready for next write
+                        pixel_counter = 0;
+                        next_state = write_comp1;
+
+                    end
+                    default: // For now should not happen
+                        assert(0);
+                endcase
+            end
+
+            write_comp1: begin
+                // comp and then write
+                s11 = read_reg[2];
+                s12 = read_reg[3];
+                s13 = read_reg[12];
+                s21 = read_reg[6];
+                s23 = read_reg[16];
+                s31 = read_reg[19];
+                s32 = read_reg[11];
+                s33 = read_reg[20];
+                logic [7:0] result = out; 
+
                 we = 1; // Set write-enable to 1 for a write transaction
-                
+                dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
+
                 if(address >= 50687) begin
-                    next_state = read_comp;
+                    next_state = read_comp2;
                 end else begin
                     next_state = done;
+                end
+
+            end
+            write_comp2: begin
+                // comp and then write
+                if((address + 1) % 88 == 0) begin
+                    logic [7:0] result = 'x; 
+                end else begin
+                    s11 = read_reg[14];
+                    s12 = read_reg[15];
+                    s13 = read_reg[0];
+                    s21 = read_reg[18];
+                    s23 = read_reg[4];
+                    s31 = read_reg[22];
+                    s32 = read_reg[23];
+                    s33 = read_reg[8];
+                    logic [7:0] result = out; 
+                end
                 
+
+                we = 1; // Set write-enable to 1 for a write transaction
+                dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
+
+                if(address >= 50687) begin
+                    next_state = read_comp1;
+                end else begin
+                    next_state = done;
+                end
 
             end
 

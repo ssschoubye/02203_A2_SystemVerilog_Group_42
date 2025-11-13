@@ -58,6 +58,7 @@ module acc (
   reg [23:0][7:0] read_reg, next_read_reg;
   reg [3:0][7:0] write_reg;
   logic [15:0] address;
+  logic [7:0] result;
   logic [3:0] pixel_counter;
   state_t state, next_state;
 
@@ -69,10 +70,12 @@ module acc (
         case(state)
             idle: begin
                 if (start) begin
+                    finish = 0;
                     en = 1;
                     we = 0;
                     address = 0;
                     pixel_counter = 0;
+                    result = 0;
 
                     next_state = read_no_comp;
                 end
@@ -100,8 +103,8 @@ module acc (
 
                         next_state = read_comp1;
                     end
-                    default: // For now should not happen
-                        assert(0);
+                    //default: // For now should not happen
+                        // assert(0);
                 endcase
             end
             read_comp1: begin
@@ -165,8 +168,8 @@ module acc (
                         next_state = write_comp1;
 
                     end
-                    default: // For now should not happen
-                        assert(0);
+                    //default: // For now should not happen
+                        //assert(0);
                 endcase
             end
 
@@ -227,8 +230,8 @@ module acc (
                         next_state = write_comp1;
 
                     end
-                    default: // For now should not happen
-                        assert(0);
+                    //default: // For now should not happen
+                        //assert(0);
                 endcase
             end
 
@@ -242,13 +245,14 @@ module acc (
                 s31 = read_reg[19];
                 s32 = read_reg[11];
                 s33 = read_reg[20];
-                logic [7:0] result = out; 
+                result = out; 
 
                 we = 1; // Set write-enable to 1 for a write transaction
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
 
-                if(address >= 50687) begin
+                if(address < 50687) begin
                     next_state = read_comp2;
+                    address = address - 25343;
                 end else begin
                     next_state = done;
                 end
@@ -257,7 +261,7 @@ module acc (
             write_comp2: begin
                 // comp and then write
                 if((address + 1) % 88 == 0) begin
-                    logic [7:0] result = 'x; 
+                    result = 'x; 
                 end else begin
                     s11 = read_reg[14];
                     s12 = read_reg[15];
@@ -267,15 +271,16 @@ module acc (
                     s31 = read_reg[22];
                     s32 = read_reg[23];
                     s33 = read_reg[8];
-                    logic [7:0] result = out; 
+                    result = out; 
                 end
                 
 
                 we = 1; // Set write-enable to 1 for a write transaction
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
 
-                if(address >= 50687) begin
+                if(address < 50687) begin
                     next_state = read_comp1;
+                    address = address - 25343;
                 end else begin
                     next_state = done;
                 end
@@ -283,16 +288,7 @@ module acc (
             end
 
             done: begin
-                // en = 0;
-                // we = 0;
-
-                // if(address >= 50687) begin
-                //     finish = 1;
-                // end else begin
-                //     // addr - 25344 + 1 (jump back to the source image, but on next memory line)
-                //     address = address - 25343;
-                //     next_state = read_comp;
-                // end
+                en = 0;
                 finish = 1; // True
             end
         endcase

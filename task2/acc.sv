@@ -59,12 +59,14 @@ module acc (
   logic [15:0] read_address, write_address_offset, address;
   logic [7:0] result;
   logic [3:0] next_pixel_counter, pixel_counter;
+  logic [15:0] next_cycle_counter, cycle_counter;
   state_t state, next_state;
 
     always_comb begin
         next_state = state;
         next_read_reg = read_reg;
         next_pixel_counter = pixel_counter;
+        next_cycle_counter = cycle_counter;
         we = 0; // ALWAYS set write enable to false
         //addr = address;
 
@@ -77,8 +79,9 @@ module acc (
                     addr = 0;
                     address = 0;
                     read_address = 0;
-                    write_address_offset = 25344; // FIXME:
+                    write_address_offset = 25344 + 88; // - 265;
                     next_pixel_counter = 0;
+                    next_cycle_counter = 0;
                     result = 0;
 
                     next_state = read_no_comp;
@@ -91,35 +94,35 @@ module acc (
                     0: begin
                         {next_read_reg[3], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
                         next_pixel_counter = pixel_counter + 1;
-                        read_address = read_address + 88;
+                        address = read_address + 88 + cycle_counter;
                         next_state = read_no_comp;
                     end
                     1: begin
                         {next_read_reg[7], next_read_reg[6], next_read_reg[5], next_read_reg[4]} = dataR;
                         next_pixel_counter = pixel_counter + 1;
-                        read_address = read_address + 88;
+                        address = read_address + 176 + cycle_counter;
                         next_state = read_no_comp;
                     end
                     2: begin
                         {next_read_reg[11], next_read_reg[10], next_read_reg[9], next_read_reg[8]} = dataR;
                         next_pixel_counter = 0;
-                        read_address = read_address - 175; // 88 * 2 + 1
-
+                        address = read_address + 1 + cycle_counter; // 88 * 2 + 1
+                        next_cycle_counter = cycle_counter + 1;
                         next_state = read_comp1;
                     end
                     //default: // For now should not happen
                         // assert(0);
                 endcase
-                    address = read_address;
             end
             read_comp1: begin
                 we = 0;
                 case(pixel_counter)
                     0: begin
-                        {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
+                        if (dataR != 'x)
+                            {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
                         // if edge do nothing
-                        if((read_address-1) % 88 == 0) begin
-                            write_reg[0] = 00; // FIXME
+                        if((cycle_counter) % 88 == 0) begin
+                            write_reg[0] = 8'h0; // FIXME
                         end else begin
                             s11 = read_reg[15];
                             s12 = read_reg[0];
@@ -132,8 +135,7 @@ module acc (
                             write_reg[0] = out;
                         end
 
-                        read_address = read_address + 88; // Have the next adress ready for next read
-                        address = read_address;
+                        address = read_address + 88 + cycle_counter; // Have the next adress ready for next read
                         next_pixel_counter = pixel_counter + 1;
                         next_state = read_comp1;
 
@@ -151,8 +153,7 @@ module acc (
                         s33 = read_reg[10];
                         write_reg[1] = out;
 
-                        read_address = read_address + 88; // Have the next adress ready for next read
-                        address = read_address;
+                        address = read_address + 176 + cycle_counter; // Have the next adress ready for next read
                         next_pixel_counter = pixel_counter + 1;
                         next_state = read_comp1;
 
@@ -170,7 +171,7 @@ module acc (
                         s33 = read_reg[11];
                         write_reg[2] = out;
 
-                        address = write_address_offset + read_address;
+                        address = read_address + cycle_counter + 1; // offset due to next column FIXME: Rewrite this
                         next_pixel_counter = 0;
                         next_state = write_comp1;
                     end
@@ -183,7 +184,6 @@ module acc (
                 we = 0;
                 case(pixel_counter)
                     0: begin
-                        {next_read_reg[3], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
                         s11 = read_reg[3];
                         s12 = read_reg[12];
                         s13 = read_reg[13];
@@ -194,8 +194,7 @@ module acc (
                         s33 = read_reg[21];
                         write_reg[0] = out;
 
-                        read_address = read_address + 88; // Have the next adress ready for next read
-                        address = read_address;
+                        address = read_address + 88 + cycle_counter; // Have the next adress ready for next read
                         next_pixel_counter = pixel_counter + 1;
                         next_state = read_comp2;
 
@@ -213,8 +212,7 @@ module acc (
                         s33 = read_reg[22];
                         write_reg[1] = out;
 
-                        read_address = read_address + 88; // Have the next adress ready for next read
-                        address = read_address;
+                        address = read_address + 176 + cycle_counter; // Have the next adress ready for next read
                         next_pixel_counter = pixel_counter + 1;
                         next_state = read_comp2;
 
@@ -232,10 +230,9 @@ module acc (
                         s33 = read_reg[23];
                         write_reg[2] = out;
 
-                        address = read_address + write_address_offset; // Have the next adress ready for next write
+                        address = read_address + cycle_counter; // Have the next adress ready for next write
                         next_pixel_counter = 0;
                         next_state = write_comp2;
-
                     end
                     //default: // For now should not happen
                         //assert(0);
@@ -253,11 +250,15 @@ module acc (
                 s32 = read_reg[11];
                 s33 = read_reg[20];
                 result = out;
+                address = cycle_counter + write_address_offset - 1;
+                // read input from dataR
+                {next_read_reg[3], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
 
                 we = 1; // Set write-enable to 1 for a write transaction
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
-
-                if(read_address < 25344) begin
+                if((read_address + cycle_counter) < 25344) begin
+                    // read_address = address - write_address_offset + 1;
+                    next_cycle_counter = cycle_counter + 1;
                     next_state = read_comp2;
                 end else begin
                     next_state = done;
@@ -266,8 +267,8 @@ module acc (
             end
             write_comp2: begin
                 // comp and then write
-                if((read_address + 1) % 88 == 0) begin
-                    result = 00;
+                if((cycle_counter + 1) % 88 == 0) begin
+                    result = 8'h0; // FIXME
                 end else begin
                     s11 = read_reg[14];
                     s12 = read_reg[15];
@@ -282,9 +283,11 @@ module acc (
 
                 we = 1; // Set write-enable to 1 for a write transaction
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
-
-                if(read_address < 25344) begin
+                address = cycle_counter + write_address_offset - 1;
+                {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
+                if((read_address + cycle_counter) < 25344) begin
                     next_state = read_comp1;
+                    next_cycle_counter = cycle_counter + 1;
                 end else begin
                     next_state = done;
                 end
@@ -296,6 +299,7 @@ module acc (
                 finish = 1; // True
             end
         endcase
+        addr = address;
     end;
 
     always_ff @(posedge clk or posedge reset) begin
@@ -304,8 +308,8 @@ module acc (
         else begin
             state <= next_state;
             read_reg <= next_read_reg;
-            addr <= address;
             pixel_counter <= next_pixel_counter;
+            cycle_counter <= next_cycle_counter;
         end
     end;
 

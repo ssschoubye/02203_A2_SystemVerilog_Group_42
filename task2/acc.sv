@@ -293,7 +293,7 @@ module acc (
                 en = 1;
                 we = 1; // Set write-enable to 1 for a write transaction
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
-                if((read_address + cycle_counter) < 25344) begin
+                if((read_address + cycle_counter) < 25164) begin // 25344 - 180 to avoid last row
                     // read_address = address - write_address_offset + 1;
                     next_cycle_counter = cycle_counter + 1;
                     next_state = read_comp2;
@@ -323,7 +323,7 @@ module acc (
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
                 address = cycle_counter + write_address_offset - 1;
                 {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
-                if((read_address + cycle_counter) < 25344) begin
+                if((read_address + cycle_counter) < 25164) begin // 25344 - 180 to avoid last row
                     next_state = read_comp1;
                     next_cycle_counter = cycle_counter + 1;
                 end else begin

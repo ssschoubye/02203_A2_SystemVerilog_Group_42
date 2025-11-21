@@ -55,7 +55,7 @@ module acc (
     } state_t;
 
   reg [23:0][7:0] read_reg, next_read_reg;
-  reg [3:0][7:0] write_reg, next_write_reg;
+  reg [2:0][7:0] write_reg, next_write_reg;
   logic [15:0] read_address, write_address_offset, address;
   logic [7:0] result;
   logic [3:0] next_pixel_counter, pixel_counter;
@@ -151,10 +151,12 @@ module acc (
                 we = 0;
                 case(pixel_counter)
                     0: begin
-                        if (dataR != 'x)
+                        if (dataR === 32'hx) begin
+                            {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = 32'h0;
+                        end else
                             {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
                         // if edge do nothing
-                        if((cycle_counter) % 88 == 0) begin
+                        if((cycle_counter - 1) % 88 == 0) begin
                             next_write_reg[0] = 8'h0;
                         end else begin
                             s11 = read_reg[15];

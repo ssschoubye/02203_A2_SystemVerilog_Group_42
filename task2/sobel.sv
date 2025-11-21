@@ -34,7 +34,7 @@ module sobel(
 );
     logic signed [11:0] gx_s, gy_s;
     logic signed [11:0] gx_abs, gy_abs;
-    logic [11:0] mag; 
+    logic [11:0] mag;
   // ---------------------------------------------------
   // Insert your design here
   // ---------------------------------------------------
@@ -44,7 +44,7 @@ module sobel(
         gy_s = {4'd0, s11} - {4'd0, s31} + (({4'd0, s12} - {4'd0, s32}) << 1) + {4'd0, s13} - {4'd0, s33};
 
         gx_abs = gx_s[11] ? (~gx_s + 12'b1) : gx_s;
-        gy_abs = gy_s[11] ? (~gy_s + 12'b1) : gx_s;
+        gy_abs = gy_s[11] ? (~gy_s + 12'b1) : gy_s;
 
         mag = gx_abs + gy_abs;
 

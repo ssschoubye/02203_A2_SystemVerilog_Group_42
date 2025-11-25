@@ -151,9 +151,7 @@ module acc (
                 we = 0;
                 case(pixel_counter)
                     0: begin
-                        if (dataR === 32'hx) begin
-                            {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = 32'h0;
-                        end else
+                        if (cycle_counter == 1)
                             {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
                         // if edge do nothing
                         if((cycle_counter - 1) % 88 == 0) begin

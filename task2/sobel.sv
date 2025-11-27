@@ -38,7 +38,6 @@ module sobel(
   // ---------------------------------------------------
   // Insert your design here
   // ---------------------------------------------------
-    localparam int MAX_MAG = 2040;
     logic [15:0] normalized;
 
     always_comb begin
@@ -50,8 +49,8 @@ module sobel(
 
         mag = gx_abs + gy_abs;
 
-        // Normalize to 0-255
-        normalized = (mag * 255) / MAX_MAG;
+        // Normalize to 0-255, without using division
+        normalized = (mag * 512) >> 12;
 
         out = (normalized > 20) ? (normalized > 255 ? 8'd255 : normalized[7:0]) : 8'd0;
     end

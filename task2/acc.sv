@@ -54,7 +54,7 @@ module acc (
         idle, read_no_comp, read_comp1, read_comp2, write_comp1, write_comp2, done
     } state_t;
 
-  reg [23:0][7:0] read_reg, next_read_reg;
+  reg [25:0][7:0] read_reg, next_read_reg;
   reg [2:0][7:0] write_reg, next_write_reg;
   logic [15:0] read_address, write_address_offset, address;
   logic [7:0] result;
@@ -154,6 +154,8 @@ module acc (
                         if (cycle_counter == 1)
                             {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
                         // if edge do nothing
+                        //
+                        next_read_reg[15] = read_reg[25];
                         if((cycle_counter - 1) % 88 == 0) begin // FIXME: no modulo :(
                             next_write_reg[0] = 8'h0;
                         end else begin
@@ -204,7 +206,7 @@ module acc (
                         s33 = read_reg[11];
                         next_write_reg[2] = out;
 
-                        address = read_address + cycle_counter + 1; // offset due to next column FIXME: Rewrite this
+                        address = cycle_counter + 1; // offset due to next column FIXME: Rewrite this
                         next_pixel_counter = 0;
                         next_state = write_comp1;
                     end
@@ -218,6 +220,7 @@ module acc (
                 we = 0;
                 case(pixel_counter)
                     0: begin
+                        next_read_reg[3] = read_reg[24]; // Ugly
                         s11 = read_reg[3];
                         s12 = read_reg[12];
                         s13 = read_reg[13];
@@ -286,7 +289,7 @@ module acc (
                 result = out;
                 address = cycle_counter + write_address_offset - 1;
                 // read input from dataR
-                {next_read_reg[3], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
+                {next_read_reg[24], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
 
                 en = 1;
                 we = 1; // Set write-enable to 1 for a write transaction
@@ -315,7 +318,7 @@ module acc (
                 we = 1; // Set write-enable to 1 for a write transaction
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
                 address = cycle_counter + write_address_offset - 1;
-                {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
+                {next_read_reg[25], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
                 if((read_address + cycle_counter) < 25168) begin // 25344 - 176 to avoid last row
                     next_state = read_comp1;
                     next_cycle_counter = cycle_counter + 1;

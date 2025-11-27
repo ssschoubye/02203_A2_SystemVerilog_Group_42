@@ -38,17 +38,21 @@ module sobel(
   // ---------------------------------------------------
   // Insert your design here
   // ---------------------------------------------------
-    always_comb begin
+    localparam int MAX_MAG = 2040;
+    logic [15:0] normalized;
 
-        gx_s = {4'd0, s13} - {4'd0, s11} + (({4'd0, s23} - {4'd0, s21}) << 1) + {4'd0, s33} - {4'd0, s31};
-        gy_s = {4'd0, s11} - {4'd0, s31} + (({4'd0, s12} - {4'd0, s32}) << 1) + {4'd0, s13} - {4'd0, s33};
+    always_comb begin
+        gx_s = $signed({4'd0, s13}) - $signed({4'd0, s11}) + (($signed({4'd0, s23}) - $signed({4'd0, s21})) << 1) + $signed({4'd0, s33}) - $signed({4'd0, s31});
+        gy_s = $signed({4'd0, s11}) - $signed({4'd0, s31}) + (($signed({4'd0, s12}) - $signed({4'd0, s32})) << 1) + $signed({4'd0, s13}) - $signed({4'd0, s33});
 
         gx_abs = gx_s[11] ? (~gx_s + 12'b1) : gx_s;
         gy_abs = gy_s[11] ? (~gy_s + 12'b1) : gy_s;
 
         mag = gx_abs + gy_abs;
 
-        out = mag > 255 ? 8'd255 : mag[7:0];
+        // Normalize to 0-255
+        normalized = (mag * 255) / MAX_MAG;
 
+        out = (normalized > 20) ? (normalized > 255 ? 8'd255 : normalized[7:0]) : 8'd0;
     end
 endmodule

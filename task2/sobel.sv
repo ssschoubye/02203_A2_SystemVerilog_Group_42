@@ -52,6 +52,6 @@ module sobel(
         // Normalize to 0-255, without using division
         normalized = (mag * 512) >> 12;
 
-        out = (normalized > 20) ? (normalized > 255 ? 8'd255 : normalized[7:0]) : 8'd0;
+        out = (normalized > 255) ? 8'd255 : normalized[7:0];
     end
 endmodule

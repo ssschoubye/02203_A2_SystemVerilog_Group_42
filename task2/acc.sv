@@ -56,7 +56,7 @@ module acc (
 
   reg [25:0][7:0] read_reg, next_read_reg;
   reg [2:0][7:0] write_reg, next_write_reg;
-  logic [15:0] read_address, write_address_offset, address;
+  logic [15:0] write_address_offset, address;
   logic [7:0] result;
   logic [3:0] next_pixel_counter, pixel_counter;
   logic [15:0] next_cycle_counter, cycle_counter;
@@ -65,7 +65,6 @@ module acc (
 
     always_comb begin
         // Default assignments for all signals to avoid latches
-        read_address = 0;
         write_address_offset = 25344; // 88*288
 
         // Default assignments to avoid latches
@@ -103,7 +102,6 @@ module acc (
                     we = 0;
                     addr = 0;
                     address = 0;
-                    read_address = 0;
                     next_pixel_counter = 0;
                     next_cycle_counter = 0;
                     next_cycle_counter_mod_88 = 0;

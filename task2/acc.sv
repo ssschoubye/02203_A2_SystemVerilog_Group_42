@@ -44,7 +44,6 @@ module acc (
         .s23(s23),
         .s33(s33),
         .out(out)
-
     );
 
   // ---------------------------------------------------
@@ -52,56 +51,128 @@ module acc (
   // ---------------------------------------------------
 
     typedef enum logic[3:0]{
-        idle, read_no_comp, read_comp1, read_comp2, write_comp1, write_comp2, done
+        idle, read_no_comp, read_comp1, read_comp2, write_comp1, write_comp2, border_handler, done
     } state_t;
 
-  reg [23:0][7:0] read_reg, next_read_reg;
-  reg [3:0][7:0] write_reg;
-  logic [15:0] address;
+  reg [25:0][7:0] read_reg, next_read_reg;
+  reg [2:0][7:0] write_reg, next_write_reg;
+  logic [15:0] read_address, write_address_offset, address;
   logic [7:0] result;
-  logic [3:0] pixel_counter;
+  logic [3:0] next_pixel_counter, pixel_counter;
+  logic [15:0] next_cycle_counter, cycle_counter;
+  logic [6:0] next_cycle_counter_mod_88, cycle_counter_mod_88;
   state_t state, next_state;
 
     always_comb begin
+        // Default assignments for all signals to avoid latches
+        read_address = 0;
+        write_address_offset = 25344; // 88*288
+
+        // Default assignments to avoid latches
         next_state = state;
         next_read_reg = read_reg;
-        //addr = address;
+        next_write_reg = write_reg;
+        next_pixel_counter = pixel_counter;
+        next_cycle_counter = cycle_counter;
+        next_cycle_counter_mod_88 = cycle_counter_mod_88;
+        we = 0;
+        finish = 0;
+        result = 0;
+
+        // no latches variables
+        address = 0;
+        dataW = 0;
+
+        s11 = 0;
+        s12 = 0;
+        s13 = 0;
+        s21 = 0;
+        s23 = 0;
+        s31 = 0;
+        s32 = 0;
+        s33 = 0;
+        en = 0;
 
         case(state)
             idle: begin
+                addr = 0;
+                dataW = 0;
                 if (start) begin
                     finish = 0;
                     en = 1;
                     we = 0;
                     addr = 0;
                     address = 0;
-                    pixel_counter = 0;
+                    read_address = 0;
+                    next_pixel_counter = 0;
+                    next_cycle_counter = 0;
+                    next_cycle_counter_mod_88 = 0;
                     result = 0;
-
-                    next_state = read_no_comp;
+                    dataW = 0;
+                    next_state = border_handler;
                 end
             end
 
+            border_handler: begin
+                // Write zeros to borders
+                en = 1;
+                we = 1;
+                dataW = 32'h00000000;
+                if( cycle_counter < 88) begin
+                    // Top border
+                    address = cycle_counter + write_address_offset;
+                    next_cycle_counter = cycle_counter + 1;
+                    next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
+                    next_state = border_handler;
+                end else if(cycle_counter >= 25256) begin
+                    // Bottom border
+                    address = cycle_counter + write_address_offset;
+                    next_cycle_counter = cycle_counter + 1;
+                    next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
+                    next_state = border_handler;
+                end
+
+                // determine next state
+                if (cycle_counter == 25344) begin
+                    next_state = done;
+                end else if (cycle_counter == 88) begin
+                    next_cycle_counter = cycle_counter + 1;
+                    // next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
+                    next_state = read_no_comp;
+                    address = 0;
+                end
+
+            end
+
             read_no_comp: begin
+                // Avoid latches
+                // s11 = 0;
+                // s12 = 0;
+                // s13 = 0;
+                // s21 = 0;
+                // s23 = 0;
+                // s31 = 0;
+                // s32 = 0;
+                // s33 = 0;
+                en = 1;
                 // Read something
                 case(pixel_counter)
                     0: begin
                         {next_read_reg[3], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
-                        pixel_counter = pixel_counter + 1;
-                        address = address + 88;
+                        next_pixel_counter = pixel_counter + 1;
+                        address = cycle_counter - 1;
                         next_state = read_no_comp;
                     end
                     1: begin
                         {next_read_reg[7], next_read_reg[6], next_read_reg[5], next_read_reg[4]} = dataR;
-                        pixel_counter = pixel_counter + 1;
-                        address = address + 88;
+                        next_pixel_counter = pixel_counter + 1;
+                        address = 88 + cycle_counter - 1;
                         next_state = read_no_comp;
                     end
                     2: begin
                         {next_read_reg[11], next_read_reg[10], next_read_reg[9], next_read_reg[8]} = dataR;
-                        pixel_counter = 0;
-                        address = address - 175; // 88 * 2 + 1
-
+                        next_pixel_counter = 0;
+                        address = cycle_counter - 88;
                         next_state = read_comp1;
                     end
                     //default: // For now should not happen
@@ -109,13 +180,20 @@ module acc (
                 endcase
             end
             read_comp1: begin
+                en = 1;
                 we = 0;
                 case(pixel_counter)
                     0: begin
-                        {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
+
+                        next_read_reg[15] = read_reg[25] === 8'bxxxxxxxx ? read_reg[15] : read_reg[25];
+
+                        // first cycle special case
+                        if (cycle_counter == 89)
+                            {next_read_reg[15], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
+
                         // if edge do nothing
-                        if((address-1) % 88 == 0) begin
-                            write_reg[0] = 'x; // FIXME
+                        if(cycle_counter_mod_88 == 0) begin
+                            next_write_reg[0] = 8'h0;
                         end else begin
                             s11 = read_reg[15];
                             s12 = read_reg[0];
@@ -125,11 +203,11 @@ module acc (
                             s31 = read_reg[23];
                             s32 = read_reg[8];
                             s33 = read_reg[9];
-                            write_reg[0] = out; 
+                            next_write_reg[0] = out;
                         end
 
-                        address = address + 88; // Have the next adress ready for next read
-                        pixel_counter = pixel_counter + 1;
+                        address = cycle_counter; // Have the next adress ready for next read
+                        next_pixel_counter = pixel_counter + 1;
                         next_state = read_comp1;
 
                     end
@@ -144,10 +222,10 @@ module acc (
                         s31 = read_reg[8];
                         s32 = read_reg[9];
                         s33 = read_reg[10];
-                        write_reg[1] = out; 
-                        
-                        address = address + 88; // Have the next adress ready for next read
-                        pixel_counter = pixel_counter + 1;
+                        next_write_reg[1] = out;
+
+                        address = 88 + cycle_counter; // Have the next adress ready for next read
+                        next_pixel_counter = pixel_counter + 1;
                         next_state = read_comp1;
 
                     end
@@ -162,10 +240,10 @@ module acc (
                         s31 = read_reg[9];
                         s32 = read_reg[10];
                         s33 = read_reg[11];
-                        write_reg[2] = out; 
-                        
-                        address = address + 25344; // Have the next adress ready for next write
-                        pixel_counter = 0;
+                        next_write_reg[2] = out;
+
+                        address = cycle_counter + 1 - 88; // offset due to next column
+                        next_pixel_counter = 0;
                         next_state = write_comp1;
                     end
                     //default: // For now should not happen
@@ -174,10 +252,11 @@ module acc (
             end
 
             read_comp2: begin
+                en = 1;
                 we = 0;
                 case(pixel_counter)
                     0: begin
-                        {next_read_reg[3], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
+                        next_read_reg[3] = read_reg[24] === 8'bxxxxxxxx ? read_reg[3] : read_reg[24];
                         s11 = read_reg[3];
                         s12 = read_reg[12];
                         s13 = read_reg[13];
@@ -186,12 +265,11 @@ module acc (
                         s31 = read_reg[11];
                         s32 = read_reg[20];
                         s33 = read_reg[21];
-                        write_reg[0] = out; 
-                        
+                        next_write_reg[0] = out;
 
-                        address = address + 88; // Have the next adress ready for next read
-                        pixel_counter = pixel_counter + 1;
-                        next_state = read_comp1;
+                        address = cycle_counter; // Have the next adress ready for next read
+                        next_pixel_counter = pixel_counter + 1;
+                        next_state = read_comp2;
 
                     end
 
@@ -205,11 +283,11 @@ module acc (
                         s31 = read_reg[20];
                         s32 = read_reg[21];
                         s33 = read_reg[22];
-                        write_reg[1] = out; 
+                        next_write_reg[1] = out;
 
-                        address = address + 88; // Have the next adress ready for next read
-                        pixel_counter = pixel_counter + 1;
-                        next_state = read_comp1;
+                        address = 88 + cycle_counter; // Have the next adress ready for next read
+                        next_pixel_counter = pixel_counter + 1;
+                        next_state = read_comp2;
 
                     end
 
@@ -223,12 +301,11 @@ module acc (
                         s31 = read_reg[21];
                         s32 = read_reg[22];
                         s33 = read_reg[23];
-                        write_reg[2] = out; 
+                        next_write_reg[2] = out;
 
-                        address = address + 25344; // Have the next adress ready for next write
-                        pixel_counter = 0;
-                        next_state = write_comp1;
-
+                        address = cycle_counter + 1 - 88; // Have the next adress ready for next write
+                        next_pixel_counter = 0;
+                        next_state = write_comp2;
                     end
                     //default: // For now should not happen
                         //assert(0);
@@ -242,26 +319,26 @@ module acc (
                 s13 = read_reg[12];
                 s21 = read_reg[6];
                 s23 = read_reg[16];
-                s31 = read_reg[19];
+                s31 = read_reg[10];
                 s32 = read_reg[11];
                 s33 = read_reg[20];
-                result = out; 
+                result = out;
+                address = cycle_counter + write_address_offset - 1;
+                // read input from dataR
+                {next_read_reg[24], next_read_reg[2], next_read_reg[1], next_read_reg[0]} = dataR;
 
+                en = 1;
                 we = 1; // Set write-enable to 1 for a write transaction
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
-
-                if(address < 50687) begin
-                    next_state = read_comp2;
-                    address = address - 25343;
-                end else begin
-                    next_state = done;
-                end
+                next_cycle_counter = cycle_counter + 1;
+                next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
+                next_state = read_comp2;
 
             end
             write_comp2: begin
                 // comp and then write
-                if((address + 1) % 88 == 0) begin
-                    result = 'x; 
+                if(cycle_counter_mod_88 == 87) begin
+                    result = 8'h0; // FIXME
                 end else begin
                     s11 = read_reg[14];
                     s12 = read_reg[15];
@@ -271,27 +348,46 @@ module acc (
                     s31 = read_reg[22];
                     s32 = read_reg[23];
                     s33 = read_reg[8];
-                    result = out; 
+                    result = out;
                 end
-                
 
+                en = 1;
                 we = 1; // Set write-enable to 1 for a write transaction
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
 
-                if(address < 50687) begin
+                address = cycle_counter + write_address_offset - 1;
+                {next_read_reg[25], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
+
+                if((cycle_counter) < 25256) begin // 25344 - 88
                     next_state = read_comp1;
-                    address = address - 25343;
-                end else begin
-                    next_state = done;
-                end
+                    next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
+                    next_cycle_counter = cycle_counter + 1;
+                end else
+                    next_state = border_handler;
 
             end
 
             done: begin
+                // Avoid latches
+                s11 = 0;
+                s12 = 0;
+                s13 = 0;
+                s21 = 0;
+                s23 = 0;
+                s31 = 0;
+                s32 = 0;
+                s33 = 0;
+
                 en = 0;
                 finish = 1; // True
+                we = 0;
+                addr = 0;
+                address = 0;
+                result = 0;
+                dataW = 0;
             end
         endcase
+        addr = address;
     end;
 
     always_ff @(posedge clk or posedge reset) begin
@@ -300,7 +396,10 @@ module acc (
         else begin
             state <= next_state;
             read_reg <= next_read_reg;
-            addr <= address;
+            write_reg <= next_write_reg;
+            pixel_counter <= next_pixel_counter;
+            cycle_counter <= next_cycle_counter;
+            cycle_counter_mod_88 <= (next_cycle_counter_mod_88 < 88) ? next_cycle_counter_mod_88 : 0;
         end
     end;
 

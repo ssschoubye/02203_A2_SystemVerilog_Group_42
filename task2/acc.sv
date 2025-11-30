@@ -2,14 +2,16 @@
 //
 //  Title      :  Edge-Detection design project - task 2.
 //             :
-//  Developers :  YOUR NAME HERE - s??????@student.dtu.dk
-//             :  YOUR NAME HERE - s??????@student.dtu.dk
+//  Developers :  Christian Søtorp - s195041@student.dtu.dk
+//             :  Lucas Sjøstrøm   - s224742@student.dtu.dk
+//             :  Marilouise Arbøl - s214401@student.dtu.dk
+//             :  Søren Schoubye   - s224657@student.dtu.dk
 //             :
 //  Purpose    :  This design contains an entity for the accelerator that must be build
 //             :  in task two of the Edge Detection design project. It contains an
 //             :  architecture skeleton for the entity as well.
 //             :
-//  Revision   :  1.0   ??-??-??     Final version
+//  Revision   :  1.0    Final version
 //             :
 //
 // ----------------------------------------------------------------------------//
@@ -94,19 +96,12 @@ module acc (
 
         case(state)
             idle: begin
-                addr = 0;
-                dataW = 0;
                 if (start) begin
                     finish = 0;
                     en = 1;
-                    we = 0;
-                    addr = 0;
-                    address = 0;
                     next_pixel_counter = 0;
                     next_cycle_counter = 0;
                     next_cycle_counter_mod_88 = 0;
-                    result = 0;
-                    dataW = 0;
                     next_state = border_handler;
                 end
             end
@@ -137,21 +132,12 @@ module acc (
                     next_cycle_counter = cycle_counter + 1;
                     // next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
                     next_state = read_no_comp;
-                    address = 0;
                 end
 
             end
 
             read_no_comp: begin
                 // Avoid latches
-                // s11 = 0;
-                // s12 = 0;
-                // s13 = 0;
-                // s21 = 0;
-                // s23 = 0;
-                // s31 = 0;
-                // s32 = 0;
-                // s33 = 0;
                 en = 1;
                 // Read something
                 case(pixel_counter)
@@ -173,13 +159,10 @@ module acc (
                         address = cycle_counter - 88;
                         next_state = read_comp1;
                     end
-                    //default: // For now should not happen
-                        // assert(0);
                 endcase
             end
             read_comp1: begin
                 en = 1;
-                we = 0;
                 case(pixel_counter)
                     0: begin
 
@@ -244,14 +227,11 @@ module acc (
                         next_pixel_counter = 0;
                         next_state = write_comp1;
                     end
-                    //default: // For now should not happen
-                        //assert(0);
                 endcase
             end
 
             read_comp2: begin
                 en = 1;
-                we = 0;
                 case(pixel_counter)
                     0: begin
                         next_read_reg[3] = read_reg[24] === 8'bxxxxxxxx ? read_reg[3] : read_reg[24];
@@ -366,23 +346,8 @@ module acc (
             end
 
             done: begin
-                // Avoid latches
-                s11 = 0;
-                s12 = 0;
-                s13 = 0;
-                s21 = 0;
-                s23 = 0;
-                s31 = 0;
-                s32 = 0;
-                s33 = 0;
-
-                en = 0;
                 finish = 1; // True
-                we = 0;
-                addr = 0;
                 address = 0;
-                result = 0;
-                dataW = 0;
             end
         endcase
         addr = address;

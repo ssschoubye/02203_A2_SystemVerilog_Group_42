@@ -314,7 +314,7 @@ module acc (
             write_comp2: begin
                 // comp and then write
                 if(cycle_counter_mod_88 == 87) begin
-                    result = 8'h0; // FIXME
+                    result = 8'h0;
                 end else begin
                     s11 = read_reg[14];
                     s12 = read_reg[15];

@@ -111,27 +111,25 @@ module acc (
                 en = 1;
                 we = 1;
                 dataW = 32'h00000000;
-                if( cycle_counter < 88) begin
+                if(cycle_counter < 88) begin
                     // Top border
                     address = cycle_counter + write_address_offset;
                     next_cycle_counter = cycle_counter + 1;
                     next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
                     next_state = border_handler;
-                end else if(cycle_counter >= 25256) begin
+                end else if (cycle_counter == 88) begin
+                    next_cycle_counter = cycle_counter + 1;
+                    // next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
+                    next_state = read_no_comp;
+                end else if (cycle_counter == 25344) begin
+                    // determine next state
+                    next_state = done;
+                end else if (cycle_counter >= 25256) begin
                     // Bottom border
                     address = cycle_counter + write_address_offset;
                     next_cycle_counter = cycle_counter + 1;
                     next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
                     next_state = border_handler;
-                end
-
-                // determine next state
-                if (cycle_counter == 25344) begin
-                    next_state = done;
-                end else if (cycle_counter == 88) begin
-                    next_cycle_counter = cycle_counter + 1;
-                    // next_cycle_counter_mod_88 = cycle_counter_mod_88 + 1;
-                    next_state = read_no_comp;
                 end
 
             end

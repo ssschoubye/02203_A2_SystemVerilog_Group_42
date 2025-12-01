@@ -43,7 +43,7 @@ module acc0 (
 
     // byte unsigned reg_a, reg_b, reg_c, reg_d, next_reg_a, next_reg_b, next_reg_c, next_reg_d;
     logic[7:0] reg_a, reg_b, reg_c, reg_d, next_reg_a, next_reg_b, next_reg_c, next_reg_d;
-    logic[15:0] address;
+    logic[15:0] address, next_address;
 
     state_t state, next_state;
 
@@ -53,16 +53,20 @@ module acc0 (
         next_reg_b = reg_b;
         next_reg_c = reg_c;
         next_reg_d = reg_d;
+        next_address = address;
         addr = address;
+        en = 0;
+        we = 0;
+        finish = 0;
+        dataW = 0;
 
         case(state)
             idle: begin
-                finish = 0;
                 next_reg_a = 0;
                 next_reg_b = 0;
                 next_reg_c = 0;
                 next_reg_d = 0;
-                address = 0;
+                next_address = 0;
 
                 if(start) next_state = req_data;
             end
@@ -70,7 +74,6 @@ module acc0 (
             req_data: begin
                 en = 1;
                 we = 0;
-
                 next_state = read;
             end
 
@@ -80,8 +83,8 @@ module acc0 (
                 //next_reg_c = dataR[23:16];
                 //next_reg_d = dataR[31:24];
                 {next_reg_d, next_reg_c, next_reg_b, next_reg_a} = dataR;
-                
-                en = 0;
+
+                en = 1;
                 next_state = compute;
             end
 
@@ -91,7 +94,7 @@ module acc0 (
                 next_reg_c = 255 - reg_c;
                 next_reg_d = 255 - reg_d;
 
-                address = address + 25344;
+                next_address = address + 25344;
                 next_state = write;
             end
 
@@ -110,7 +113,7 @@ module acc0 (
                     finish = 1;
                 end else begin
                     // addr - 25344 + 1 (jump back to the source image, but on next memory line)
-                    address = address - 25343;
+                    next_address = address - 25343;
 
                     next_state = req_data;
                 end
@@ -127,6 +130,7 @@ module acc0 (
             reg_b <= next_reg_b;
             reg_c <= next_reg_c;
             reg_d <= next_reg_d;
+            address <= next_address;
         end
     end
 endmodule

@@ -52,7 +52,7 @@ module acc (
   // Insert your design here
   // ---------------------------------------------------
 
-    typedef enum logic[3:0]{
+    typedef enum logic[2:0]{
         idle, read_no_comp, read_comp1, read_comp2, write_comp1, write_comp2, border_handler, done
     } state_t;
 

@@ -346,6 +346,8 @@ module acc (
             done: begin
                 finish = 1; // True
                 address = 0;
+                if (!start)
+                    next_state = idle;
             end
         endcase
         addr = address;

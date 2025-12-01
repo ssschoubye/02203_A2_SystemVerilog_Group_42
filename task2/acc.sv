@@ -56,7 +56,7 @@ module acc (
         idle, read_no_comp, read_comp1, read_comp2, write_comp1, write_comp2, border_handler, done
     } state_t;
 
-  reg [25:0][7:0] read_reg, next_read_reg;
+  reg [24:0][7:0] read_reg, next_read_reg;
   reg [2:0][7:0] write_reg, next_write_reg;
   logic [15:0] write_address_offset, address;
   logic [7:0] result;
@@ -164,7 +164,7 @@ module acc (
                 case(pixel_counter)
                     0: begin
 
-                        next_read_reg[15] = read_reg[25] === 8'bxxxxxxxx ? read_reg[15] : read_reg[25];
+                        next_read_reg[15] = read_reg[24] === 8'bxxxxxxxx ? read_reg[15] : read_reg[24];
 
                         // first cycle special case
                         if (cycle_counter == 89)
@@ -332,7 +332,7 @@ module acc (
                 dataW = {result, write_reg[2], write_reg[1], write_reg[0]};
 
                 address = cycle_counter + write_address_offset - 1;
-                {next_read_reg[25], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
+                {next_read_reg[24], next_read_reg[14], next_read_reg[13], next_read_reg[12]} = dataR;
 
                 if((cycle_counter) < 25256) begin // 25344 - 88
                     next_state = read_comp1;
